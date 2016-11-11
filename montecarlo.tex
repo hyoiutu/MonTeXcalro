@@ -1,0 +1,57 @@
+\documentclass[dvipdfmx]{standalone}
+
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{ifthen}
+
+\usetikzlibrary{calc}
+\pgfmathsetseed{20}
+
+\newcounter{begin}
+\newcounter{end}
+
+\newcounter{numofplot}
+\newcounter{redplot}
+\newcounter{blueplot}
+
+\setcounter{begin}{0}
+\setcounter{end}{4}
+
+\setcounter{numofplot}{0}
+\setcounter{redplot}{0}
+\setcounter{blueplot}{0}
+
+\newcount\input
+
+\message{プロット点数を入力してください}
+\read-1 to \input
+
+\begin{document}
+
+  \begin{tikzpicture}[declare function = {func(\x) = \x;}]
+    \draw [ultra thick] (\arabic{begin},\arabic{begin}) rectangle (\arabic{end},\arabic{end});
+    \draw[thick]  plot[domain=\arabic{begin}:\arabic{end},samples=100] (\x,{func(\x)});
+    \foreach \i in {1,...,\input}
+    {
+      \pgfmathsetmacro\myX{random(\arabic{begin},\arabic{end}-1) + random(0,1000)/1000}%
+      \pgfmathsetmacro\myY{random(\arabic{begin},\arabic{end}-1) + random(0,1000)/1000}%
+      \pgfmathsetmacro{\rndcolor}{ func(\myX)<\myY ? "red" : "blue" }
+      \pgfmathparse{func(\myX)<\myY ? "red" : "blue"}
+      \ifthenelse{\equal{\pgfmathresult}{red}}{\stepcounter{redplot}}{\stepcounter{blueplot}}
+      \filldraw[fill=\rndcolor] (\myX, \myY) circle [radius=(\arabic{end}-\arabic{begin})*0.01];
+      \setcounter{numofplot}{\i}
+    }
+    \pgfmathparse{(\arabic{end}-\arabic{begin})^2}
+    \def\overallS{\pgfmathresult}
+    \pgfmathsetmacro\result{(\arabic{blueplot}/\arabic{numofplot})*\overallS/4}
+
+    \draw (7,5) node {全体の点数 = \arabic{numofplot}};
+    \draw (7,4) node {青い点数 = \arabic{blueplot}};
+    \draw (7,3) node {赤い点数 = \arabic{redplot}};
+    \draw (7,2) node {全体的な面積 = \overallS};
+    \def\mathfunction{$\int f(x)dx$}
+    \draw (7,1) node {\mathfunction = \pgfmathparse{\result}\pgfmathresult};
+  \end{tikzpicture}
+\end{document}
