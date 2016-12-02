@@ -5,53 +5,64 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{ifthen}
+\usepackage{fp}
 
 \usetikzlibrary{calc}
-\pgfmathsetseed{20}
 
-\newcounter{begin}
-\newcounter{end}
+\def\startpoint{0}
+\def\endpoint{1}
 
-\newcounter{numofplot}
 \newcounter{redplot}
 \newcounter{blueplot}
-
-\setcounter{begin}{0}
-\setcounter{end}{4}
-
-\setcounter{numofplot}{0}
 \setcounter{redplot}{0}
 \setcounter{blueplot}{0}
 
 \newcount\input
 
+\FPseed = \time
+
 \message{プロット点数を入力してください}
 \read-1 to \input
 
 \begin{document}
-
-  \begin{tikzpicture}[declare function = {func(\x) = \x;}]
-    \draw [ultra thick] (\arabic{begin},\arabic{begin}) rectangle (\arabic{end},\arabic{end});
-    \draw[thick]  plot[domain=\arabic{begin}:\arabic{end},samples=100] (\x,{func(\x)});
+  \scalebox{5}{
+  % 描画する関数を決める
+  \begin{tikzpicture}[declare function = {func(\x) = sqrt(1-\x^2);}]
+    % 枠を描画
+    \draw (\startpoint,\startpoint) rectangle (\endpoint,\endpoint);
+    % 関数を描画
+    \draw plot[domain=\startpoint:\endpoint,samples=100] (\x,{func(\x)});
     \foreach \i in {1,...,\input}
     {
-      \pgfmathsetmacro\myX{random(\arabic{begin},\arabic{end}-1) + random(0,1000)/1000}%
-      \pgfmathsetmacro\myY{random(\arabic{begin},\arabic{end}-1) + random(0,1000)/1000}%
-      \pgfmathsetmacro{\rndcolor}{ func(\myX)<\myY ? "red" : "blue" }
-      \pgfmathparse{func(\myX)<\myY ? "red" : "blue"}
-      \ifthenelse{\equal{\pgfmathresult}{red}}{\stepcounter{redplot}}{\stepcounter{blueplot}}
-      \filldraw[fill=\rndcolor] (\myX, \myY) circle [radius=(\arabic{end}-\arabic{begin})*0.01];
-      \setcounter{numofplot}{\i}
+      % ランダムにx座標を決める
+      \FPrandom{\randomX}
+      \FPpow{\randomFuncX}{\randomX}{2}
+      \FPsub{\randomFuncX}{1}{\randomFuncX}
+      \FProot{\randomFuncX}{\randomFuncX}{2}
+      \FPeval\plotX{\randomX}
+      \FPeval\evalX{\randomFuncX}
+      % ランダムにy座標を決める
+      \FPrandom{\randomY}
+      \FPeval\plotY{\randomY}
+      % 関数の求める面積の内側の場合は赤，外側の場合は青で点をプロット
+      % 赤の点と青の点を数える
+      \pgfmathparse{\evalX > \plotY ? "blue" : "red"}
+      \edef\color{\pgfmathresult}
+      \ifthenelse{\equal{\color}{red}}{\stepcounter{redplot}}{\stepcounter{blueplot}}
+      % 点をプロットする
+      \filldraw[fill=\color, ultra thin] (\plotX, \plotY) circle [radius=(\endpoint-\startpoint)*0.01];
     }
-    \pgfmathparse{(\arabic{end}-\arabic{begin})^2}
-    \def\overallS{\pgfmathresult}
-    \pgfmathsetmacro\result{(\arabic{blueplot}/\arabic{numofplot})*\overallS/4}
-
-    \draw (7,5) node {全体の点数 = \arabic{numofplot}};
+  \end{tikzpicture}
+  }
+  % 枠内全体の面積を変数に代入
+  \FPeval\overallS{\startpoint}
+  % 点の比と面積の比の方程式を解き，面積の近似解を得る
+  \FPeval\result{round(4 * \arabic{blueplot} * \overallS / \input,9)}
+  \begin{tikzpicture}
+    \draw (7,5) node {全体の点数 = \input};
     \draw (7,4) node {青い点数 = \arabic{blueplot}};
     \draw (7,3) node {赤い点数 = \arabic{redplot}};
     \draw (7,2) node {全体的な面積 = \overallS};
-    \def\mathfunction{$\int f(x)dx$}
-    \draw (7,1) node {\mathfunction = \pgfmathparse{\result}\pgfmathresult};
+    \draw (7,1) node {$\displaystyle\int^1_0 4\sqrt{1-x^2}$ = \result};
   \end{tikzpicture}
 \end{document}

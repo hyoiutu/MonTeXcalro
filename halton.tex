@@ -1,0 +1,43 @@
+\documentclass[dvipdfmx]{standalone}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{ifthen}
+\usepackage{fp}
+\usetikzlibrary{calc}
+\makeatletter
+% 剰余演算の結果
+\newcount\result@ro
+
+% van der corput列内で使う変数
+\newcount\tmp@vdc
+% van der corput列内の余りを格納する変数
+\newcount\memforR@vdc
+% van der corput列に用いる数値のビット数
+\newcount\bits@vdc
+
+
+\newcount\result
+\newcommand{\remainderOpe}[2]{%
+
+  \tmp = #1
+  \result@ro = #1
+  \divide \tmp by #2
+  \multiply \tmp by #2
+  \multiply \tmp by -1
+  \advance \result@ro by \tmp
+  \result = \result@ro
+}
+\newcommand{\vandercorput}[2]{%
+  \tmp@vdc = #1
+  \bits@vdc = 0
+  \whiledo{\NOT{\tmp@vdc = 0}}{%
+    \division \tmp@vdc by #2
+    \advance \bits@vdc by 1
+  }
+}
+\makeatother
+\begin{document}
+放て \dotfill 心に
+刻んだ \dotfill 夢を
+未来さえ \dotfill 置き去りにして
+\end{document}
