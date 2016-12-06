@@ -44,9 +44,9 @@
       % ランダムにy座標を決める
       \FPrandom{\randomY}
       \FPeval\plotY{\randomY}
-      % 関数の求める面積の内側の場合は赤，外側の場合は青で点をプロット
+      % 関数の求める範囲の外側の場合は赤，内側の場合は青で点をプロット
       % 赤の点と青の点を数える
-      \pgfmathparse{\evalX > \plotY ? "blue" : "red"}
+      \pgfmathparse{\evalX < \plotY ? "red" : "blue"}
       \edef\color{\pgfmathresult}
       \ifthenelse{\equal{\color}{red}}{\stepcounter{redplot}}{\stepcounter{blueplot}}
       % 点をプロットする
@@ -55,7 +55,7 @@
   \end{tikzpicture}
   }
   % 枠内全体の面積を変数に代入
-  \FPeval\overallS{\startpoint}
+  \FPeval\overallS{round((\endpoint - \startpoint)^2,0)}
   % 点の比と面積の比の方程式を解き，面積の近似解を得る
   \FPeval\result{round(4 * \arabic{blueplot} * \overallS / \input,9)}
   \begin{tikzpicture}
